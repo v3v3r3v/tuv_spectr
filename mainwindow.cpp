@@ -20,19 +20,33 @@ using namespace Array;
 using namespace fftwpp;
 
 #define N 100
+typedef QVector<double> QVectorDouble;
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow)
 {
+
+  qRegisterMetaType<QVectorDouble>("QVectorDouble");
   ui->setupUi(this);
   setGeometry(400, 250, 542, 390);
 
   connect(&thread,
-          SIGNAL(newDataProcessed(QVector<double>, QVector<double>, doubleQVector<double>, QVector<double>, double)),
+          SIGNAL(newDataProcessed(QVectorDouble,
+                                  QVectorDouble,
+                                  double,
+                                  QVectorDouble,
+                                  QVectorDouble,
+                                  double)),
           this,
-          SLOT(emittedSignal(QVector<double>, QVector<double>, doubleQVector<double>, QVector<double>, double)));
+          SLOT(emittedSignal(QVectorDouble,
+                             QVectorDouble,
+                             double,
+                             QVectorDouble,
+                             QVectorDouble,
+                             double)));
 \
   setWindowTitle("Спектр сигнала");
 
@@ -113,11 +127,13 @@ void MainWindow::emittedSignal(QVector<double> signalX,
                                      QVector<double> spectrY,
                                      double spectrRange)
 {
+    printf("emittedSignal");
     this->xSignalAxis->setRange(0, timePassed);
     this->signalGraph->setData(signalX, signalY);
 
     this->xSignalAxis->setRange(0, spectrRange);
     this->spectrGraph->setData(spectrX, spectrY);
+    ui->customPlot->replot();
 }
 
 MainWindow::~MainWindow()

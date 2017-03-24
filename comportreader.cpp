@@ -53,7 +53,9 @@ QVector<double> ComPortReader::ReadCOM(int n)
     QTime timer;
     timer.start();
 
-    for(unsigned int i=0; i < n; i++) values[i]=sin(628/2*i*0.001);
+    int coeff = rand() % 100;
+    int coeff2 = rand() % 100;
+    for(unsigned int i=0; i < n; i++) values[i]=sin(coeff*628/2*i*0.001)+sin(coeff2*6.28/2*i*0.001);
 //    while (i!=n) //сколько значений, удовлетворяющих всем условиям, будет записано в массив
 //    {
 //          ReadFile(hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
