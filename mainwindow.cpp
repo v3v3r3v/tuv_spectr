@@ -73,7 +73,7 @@ void MainWindow::setupGraphics(QCustomPlot *customPlot)
   //setup spectr axis
   this->xSpectrAxis = spectrAxisRect->axis(QCPAxis::atBottom);
   this->ySpectrAxis = spectrAxisRect->axis(QCPAxis::atLeft);
-  this->xSpectrAxis->setRange(0, 100);
+  this->xSpectrAxis->setRange(0, 1000);
   this->xSpectrAxis->setLabel("Частота");
   this->ySpectrAxis->setRange(0, 1);
   this->ySpectrAxis->setLabel("");
@@ -101,39 +101,34 @@ void MainWindow::setupGraphics(QCustomPlot *customPlot)
   ui->customPlot->replot();
 
   this->processGraphicData();
-
-  this->start();
-}
-
-void MainWindow::start()
-{
-    int interval = 5000;
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(processGraphicData()));
-    timer->start(interval);
 }
 
 void MainWindow::processGraphicData()
 {
-    this->thread.readAndMakeCalculationsFor(200);
-    //в инициализации нужно подписаться на слот класса для асинхронного чтения и анализа
-    //тут вызов класса для асинхронного чтения и анализа
+    this->thread.readAndMakeCalculationsFor(100);
 }
 
-void MainWindow::emittedSignal(QVector<double> signalX,
-                                     QVector<double> signalY,
+void MainWindow::emittedSignal(QVectorDouble signalX,
+                                     QVectorDouble signalY,
                                      double timePassed,
-                                     QVector<double> spectrX,
-                                     QVector<double> spectrY,
+                                     QVectorDouble spectrX,
+                                     QVectorDouble spectrY,
                                      double spectrRange)
 {
-    printf("emittedSignal");
+    qDebug() << "emitted signal";
+    qDebug() << "timePassed" << timePassed;
+    qDebug() << "spectrRange" << spectrRange;
+    qDebug() << "spectrY" << spectrY;
+    qDebug() << "signalY" << signalY;
+
+
     this->xSignalAxis->setRange(0, timePassed);
     this->signalGraph->setData(signalX, signalY);
 
-    this->xSignalAxis->setRange(0, spectrRange);
     this->spectrGraph->setData(spectrX, spectrY);
     ui->customPlot->replot();
+
+    this->processGraphicData();
 }
 
 MainWindow::~MainWindow()

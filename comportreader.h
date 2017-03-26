@@ -5,11 +5,13 @@
 #include <QVector>
 #include "measuredata.h"
 
+typedef QVector<double> QVectorDouble;
+
 class ComPortReader
 {
 public:
     ComPortReader();
-    QVector<double> ReadCOM(int n);
+    QVectorDouble ReadCOM(int n);
     double timePassed;
 };
 

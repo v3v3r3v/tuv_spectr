@@ -7,6 +7,8 @@
 //#include "measuredata.h"
 //#include "comportreader.h"
 
+typedef QVector<double> QVectorDouble;
+
 namespace Ui {
 class MainWindow;
 }
@@ -20,16 +22,14 @@ public:
   ~MainWindow();
 
   void setupGraphics(QCustomPlot *customPlot);
-  void start();
-protected:
-  ChartsRenderThread thread;
 public slots:
-    void processGraphicData();
-    void emittedSignal(QVector<double>,
-                       QVector<double>,
+    void processGraphicData();   
+private slots:
+    void emittedSignal(QVectorDouble,
+                       QVectorDouble,
                        double,
-                       QVector<double>,
-                       QVector<double>,
+                       QVectorDouble,
+                       QVectorDouble,
                        double);
 private:
   Ui::MainWindow *ui;
@@ -41,7 +41,7 @@ private:
   QCPGraph * signalGraph;
   QCPGraph * spectrGraph;
 
-
+  ChartsRenderThread thread;
 };
 
 #endif // MAINWINDOW_H
