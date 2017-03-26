@@ -3,7 +3,10 @@
 #include <iostream>
 #include <stdlib.h>
 #include <QTime>
+#include "fftw/Array.h"
+#include "fftw/fftw++.h"
 
+typedef QVector<double> QVectorDouble;
 using namespace std;
 HANDLE hSerial;
 
@@ -28,7 +31,7 @@ ComPortReader::ComPortReader()
     {
         cout << "getting state error\n";
     }
-    dcbSerialParams.BaudRate=CBR_4800;
+    dcbSerialParams.BaudRate=CBR_19200;
     dcbSerialParams.ByteSize=8;
     dcbSerialParams.StopBits=ONESTOPBIT;
     dcbSerialParams.Parity=NOPARITY;
@@ -38,7 +41,7 @@ ComPortReader::ComPortReader()
     }
 }
 
-QVector<double> ComPortReader::ReadCOM(int n)
+QVectorDouble ComPortReader::ReadCOM(int n)
 {
     DWORD iSize;
     char sReceivedChar;
@@ -47,37 +50,37 @@ QVector<double> ComPortReader::ReadCOM(int n)
     char highb, lowb;
 
     highb = 'a'; // 'a' означает, что пора бы записать high bit, проставляем после добавления нового числа в массив
-    QVector<double> values(n);
+    QVectorDouble values(n);
 
     this->timePassed = 0.0;
     QTime timer;
     timer.start();
 
-    int coeff = rand() % 100;
-    int coeff2 = rand() % 100;
-    for(unsigned int i=0; i < n; i++) values[i]=sin(coeff*628/2*i*0.001)+sin(coeff2*6.28/2*i*0.001);
-//    while (i!=n) //сколько значений, удовлетворяющих всем условиям, будет записано в массив
-//    {
-//          ReadFile(hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
-//          if (iSize > 0) {  // если что-то принято, выводим
-//              if (highb == 'a')
-//              {
-//                  highb = sReceivedChar;
-//              } else
-//              {
-//                  lowb = sReceivedChar;
-//                  double number = (highb << 8) + lowb;
+//    int coeff = rand() % 100;
+//    int coeff2 = rand() % 100;
+//    for(unsigned int i=0; i < n; i++) values[i]=sin(coeff*628/2*i*0.001)+sin(coeff2*6.28/2*i*0.001);
+    while (i != n) //сколько значений, удовлетворяющих всем условиям, будет записано в массив
+    {
+          ReadFile(hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
+          if (iSize > 0) {  // если что-то принято, выводим
+              if (highb == 'a')
+              {
+                  highb = sReceivedChar;
+              } else
+              {
+                  lowb = sReceivedChar;
+                  double number = (highb << 8) + lowb;
 
-//                  if (0 < number && number < 4095)
-//                  {
-//                      double doubleNumber = number / 1000;
-//                      values[i] = doubleNumber;
-//                      i++;
-//                  }
-//                  highb = 'a';
-//              }
-//          }
-//    }
+                  if (0 < number && number < 4095)
+                  {
+                      double doubleNumber = number / 1000;
+                      values[i] = doubleNumber;
+                      i++;
+                  }
+                  highb = 'a';
+              }
+          }
+    }
 
     double newTime = timer.elapsed() / 1000.0;
     this->timePassed = newTime;

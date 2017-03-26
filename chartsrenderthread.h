@@ -7,6 +7,8 @@
 #include <QWaitCondition>
 #include "comportreader.h"
 
+typedef QVector<double> QVectorDouble;
+
 class ChartsRenderThread : public QThread
 {
     Q_OBJECT
@@ -18,11 +20,11 @@ public:
     void readAndMakeCalculationsFor(int);
 
 signals:
-    void newDataProcessed(QVector<double>,
-                          QVector<double>,
+    void newDataProcessed(QVectorDouble,
+                          QVectorDouble,
                           double,
-                          QVector<double>,
-                          QVector<double>,
+                          QVectorDouble,
+                          QVectorDouble,
                           double);
 
 protected:

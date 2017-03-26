@@ -3,11 +3,14 @@
 #include <QtWidgets>
 #include <cmath>
 
+#include <QDebug>
+
 #include "fftw/Array.h"
 #include "fftw/fftw++.h"
 
 using namespace Array;
 using namespace fftwpp;
+typedef QVector<double> QVectorDouble;
 
 ChartsRenderThread::ChartsRenderThread(QObject *parent)
     : QThread(parent)
@@ -43,18 +46,17 @@ void ChartsRenderThread::run()
 {
     forever {
         mutex.lock();
-        mutex.unlock();
-
-        QVector<double> points(this->pointsCount);
+        QVectorDouble points(this->pointsCount);
         points = this->reader->ReadCOM(this->pointsCount);
         double timePassed = this->reader->timePassed;
+        mutex.unlock();
 
-        double timeShift = timePassed / this->pointsCount;
+        unsigned int n = points.count();
+        double timeShift = timePassed / n;
 
-        QVector<double> signalX(pointsCount), signalY(pointsCount);
+        QVectorDouble signalX(n), signalY(n);
 
-    //    for (int i = 0; i < pointsCount; ++i) было так
-        for (int i = 0; i < pointsCount; i++)
+        for (unsigned int i = 0; i < n; i++)
         {
             signalX[i] = i*timeShift; // x goes from 0 to  timePassed to take points amount
             signalY[i] = points[i];        // let's plot a quadratic function
@@ -64,7 +66,7 @@ void ChartsRenderThread::run()
 
 
 
-        int n = points.count();
+        fftw::maxthreads = get_max_threads();
         unsigned int np = n / 2 + 1;
         size_t align = sizeof(Complex);
 
@@ -72,30 +74,37 @@ void ChartsRenderThread::run()
         array1<double> f(n, align);
 
         rcfft1d Forward(n, f, F);
+//        crfft1d Backward(n, F, f);
 
-        for(int i = 0; i < n; i++) {
+        for(unsigned int i = 0; i < n; i++) {
             f[i] = points[i];
         }
 
         Forward.fft(f, F);
 
+        //вывести и узнать, сколько точек лежит в F. Вроде бы np
+        qDebug() << F.count();
 
-
-        QVector<double> spectrX(np), spectrY(np);
+        QVectorDouble spectrX(np), spectrY(np);
         for (int i = 0; i < np; i++)
         {
-          spectrX[i] = i;
+          spectrX[i] = i * 20; //если снимаем 100 точек, то преобразование отдает 50 точек, которые нужно распеределить по графику с максимально частотой 1000 => соответственно усножаем на 20.
           spectrY[i] = abs(F[i]) / np;
         }
 
-        if (!restart) {
-            emit newDataProcessed(signalX,
-                                  signalY,
-                                  timePassed,
-                                  spectrX,
-                                  spectrY,
-                                  np);
-        }
+        qDebug() << "data received";
+        qDebug() << timePassed;
+
+        emit newDataProcessed(signalX,
+                              signalY,
+                              timePassed,
+                              spectrX,
+                              spectrY,
+                              np);
+
+//        if (!restart) {
+
+//        }
 
         mutex.lock();
         if (!restart)
