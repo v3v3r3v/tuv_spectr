@@ -28,30 +28,30 @@ PCON	EQU	0087h
 	
 main:
 
-	MOV 	DPTR,#08000H
+	MOV 	R1,#080H
 	
 	MOV		R3,#1100100b ;repeat 100 times
 repeat1:	
-	ACALL	getValAndSaveToXMemory
-	INC 	DPTR
+	ACALL	getValAndSaveToSFRParallelMemory
 	DJNZ	R3,repeat1
 		
 		
-	MOV 	DPTR,#08000H
+	MOV 	R1,#080H
 	
 	MOV		R3,#1100100b ;repeat 100 times
 repeat2:
-	MOV		A,DPH
+	MOV		A,@R1
 	ACALL	sendAccValToSerialPort
-	MOV		A,DPL
+	INC		R1
+	MOV		A,@R1
 	ACALL	sendAccValToSerialPort
-	INC 	DPTR
+	INC 	R1
 	DJNZ	R3,repeat2	
 	
 JMP main
 
 ;saving values from ADC to external memory
-getValAndSaveToXMemory:
+getValAndSaveToSFRParallelMemory:
 	
 	CLR	cs
 	MOV	SPDR,#00000100b
@@ -63,15 +63,16 @@ ep:
 ep1:
 	MOV	A,SPSR
 	JNB	ACC.7,ep1
-	MOV	DPH,SPDR
-	ANL	DPH,#00001111b
+	MOV	@R1,SPDR
+	ANL	@R1,#00001111b
 
 	MOV	SPDR,#00000000b
 ep2:
 	MOV	A,SPSR
 	JNB	ACC.7,ep2
-	MOV	DPL,SPDR
-
+	INC	R1
+	MOV	@R1,SPDR
+	INC	R1
 	SETB	cs
 	
 	RET
